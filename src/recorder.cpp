@@ -273,6 +273,29 @@ geode::Result<> Recorder::Impl::writeFrame(const std::vector<uint8_t>& frameData
     return geode::Ok();
 }
 
+geode::Result<> Recorder::Impl::writePacket(std::span<uint8_t> packetData, int64_t dts, int64_t pts, int64_t denom) {
+    if (!m_init || !m_packet)
+        return geode::Err("Recorder is not initialized.");
+
+    av_packet_unref(m_packet);
+    m_packet->data = const_cast<uint8_t*>(packetData.data());
+    m_packet->size = static_cast<int>(packetData.size());
+
+    m_packet->dts = dts;
+    m_packet->pts = pts;
+
+    m_frameCount++;
+
+    av_packet_rescale_ts(m_packet, {1, (int)denom}, m_videoStream->time_base);
+    m_packet->stream_index = m_videoStream->index;
+
+    int ret = av_interleaved_write_frame(m_formatContext, m_packet);
+    if (ret < 0)
+        return geode::Err("Failed to write raw packet: " + utils::getErrorString(ret));
+
+    return geode::Ok();
+}
+
 geode::Result<> Recorder::Impl::filterFrame(AVFrame* inputFrame, AVFrame* outputFrame) {
     int ret = 0;
     if (ret = av_buffersrc_add_frame(m_buffersrcCtx, inputFrame); ret < 0) {

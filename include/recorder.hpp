@@ -5,6 +5,7 @@
 
 #include <Geode/Result.hpp>
 
+#include <cstdint>
 #include <vector>
 #include <string>
 #include <memory>
@@ -51,6 +52,7 @@ private:
         geode::Result<> init(const RenderSettings& settings);
         void stop();
         geode::Result<> writeFrame(const std::vector<uint8_t>& frameData);
+        geode::Result<> writePacket(std::span<uint8_t> packetData, int64_t dts, int64_t pts, int64_t denom);
         geode::Result<> filterFrame(AVFrame* inputFrame, AVFrame* outputFrame);
     };
 
@@ -96,6 +98,23 @@ public:
      */
     geode::Result<> writeFrame(const std::vector<uint8_t>& frameData) const {
         return m_impl->writeFrame(frameData);
+    }
+
+    /**
+     * @brief Write a single packet to the output.
+     *
+     * This function takes the raw packet data as a byte vector and writes it
+     * to the output file. The packet data must match the expected format and
+     * dimensions defined during initialization.
+     *
+     * @param packetData A vector containing the raw packet data to be written.
+     *
+     * @return true if the packet is successfully written, false if there is an error.
+     *
+     * @warning Ensure that the packetData is valid.
+     */
+    geode::Result<> writePacket(std::span<uint8_t> packetData, int64_t dts, int64_t pts, int64_t denom) const {
+        return m_impl->writePacket(packetData, dts, pts, denom);
     }
 
     /**
