@@ -36,6 +36,13 @@ $on_mod(Loaded) {
         return ListenerResult::Stop;
     });
 
+    new EventListener<EventFilter<GetWritePacketFunctionEvent>>(+[](GetWritePacketFunctionEvent* e) {
+        // this function is getting called a lot, so it would be better to cache the pointer
+        auto ptr = &ffmpeg::Recorder::writePacket;
+        e->setFunction(reinterpret_cast<GetWritePacketFunctionEvent::writePacket_t>(ptr));
+        return ListenerResult::Stop;
+    });
+
     new EventListener<EventFilter<CodecRecorderEvent>>(+[](CodecRecorderEvent* e) {
         e->setCodecs(std::move(ffmpeg::Recorder::getAvailableCodecs()));
         return ListenerResult::Stop;

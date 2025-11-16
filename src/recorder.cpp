@@ -281,7 +281,7 @@ geode::Result<> Recorder::Impl::writePacket(std::span<uint8_t> packetData, int64
     m_packet->data = const_cast<uint8_t*>(packetData.data());
     m_packet->size = static_cast<int>(packetData.size());
 
-    m_packet->dts = dts;
+    m_packet->dts = pts;
     m_packet->pts = pts;
 
     m_frameCount++;
